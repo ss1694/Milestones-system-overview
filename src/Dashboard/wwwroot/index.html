@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Milestone Overview</title>
+<style>
+  :root { --bg:#0b0f14; --card:#121821; --line:#1f2a36; --text:#d7e0ea; --muted:#7d8b99; --ok:#2bc4b4; --warn:#e8a33d; --bad:#e5484d; --info:#6e8bff; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:14px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  main { max-width:1100px; margin:0 auto; padding:24px 16px; }
+  h1 { font-size:22px; margin:0; } .sub { color:var(--muted); margin:2px 0 20px; }
+  .tiles { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; margin-bottom:24px; }
+  .tile { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:14px 16px; }
+  .tile .label { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.06em; }
+  .tile .value { font-size:28px; color:var(--ok); } .tile .note { color:var(--muted); font-size:12px; }
+  .bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+  h2 { font-size:16px; margin:0; }
+  select, a.btn { background:var(--card); color:var(--text); border:1px solid var(--line); border-radius:6px; padding:6px 10px; font:inherit; text-decoration:none; }
+  ul { list-style:none; padding:0; margin:0; }
+  li { background:var(--card); border:1px solid var(--line); border-left:4px solid var(--muted); border-radius:6px; padding:10px 14px; margin-bottom:8px; display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  li.Added, li.BackOnline { border-left-color:var(--ok); } li.Removed, li.WentOffline { border-left-color:var(--bad); }
+  li.PossibleReplacement { border-left-color:var(--warn); } .meta { color:var(--muted); font-size:12px; }
+  .empty { color:var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Environment overview</h1>
+  <p class="sub" id="taken">Loading…</p>
+  <section class="tiles" id="tiles"></section>
+
+  <div class="bar">
+    <h2>Change log</h2>
+    <div>
+      <select id="filter">
+        <option value="">All changes</option>
+        <option value="WentOffline">Went offline</option>
+        <option value="BackOnline">Back online</option>
+        <option value="Added">Added</option>
+        <option value="Removed">Removed</option>
+        <option value="PossibleReplacement">Possible replacement</option>
+      </select>
+      <a class="btn" href="/api/changes.csv">Export CSV</a>
+    </div>
+  </div>
+  <ul id="changes"></ul>
+</main>
+<script>
+const labels = { Added:"Added", Removed:"Removed", WentOffline:"Went offline", BackOnline:"Back online", PossibleReplacement:"Possible replacement (guess)" };
+const kinds = { Camera:"Camera", RecordingServer:"Recording server" };
+let changes = [];
+
+const tile = (label, value, note) =>
+  `<div class="tile"><div class="label">${label}</div><div class="value">${value}</div><div class="note">${note}</div></div>`;
+
+function render() {
+  const type = document.getElementById("filter").value;
+  const shown = changes.filter(c => !type || c.type === type);
+  document.getElementById("changes").innerHTML = shown.length ? shown.map(c => `
+    <li class="${c.type}">
+      <div><strong>${kinds[c.kind]} ${labels[c.type].toLowerCase()}</strong>: ${c.name}
+        ${c.replacedId ? `<div class="meta">Possibly replaces ${c.replacedId}</div>` : ""}</div>
+      <div class="meta">${new Date(c.detectedAt).toLocaleString()} · ${c.managementServerId}${c.recordingServerId ? " · " + c.recordingServerId : ""}</div>
+    </li>`).join("") : `<li class="empty">No changes.</li>`;
+}
+
+async function load() {
+  const s = await (await fetch("/api/summary")).json();
+  document.getElementById("taken").textContent = `Latest snapshot: ${new Date(s.takenAt).toLocaleString()} (sample data)`;
+  document.getElementById("tiles").innerHTML =
+    tile("Management servers", s.managementServers, "") +
+    tile("Recording servers", s.recordingServers, `${s.recordingServersOnline} online`) +
+    tile("Cameras", s.cameras, `${s.camerasOnline} online`);
+  changes = await (await fetch("/api/changes")).json();
+  render();
+}
+document.getElementById("filter").onchange = render;
+load();
+</script>
+</body>
+</html>
