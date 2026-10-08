@@ -9,7 +9,8 @@ Status: **early starter code.** It runs on sample data ("fake Milestone"). There
 | Folder | What it is |
 |---|---|
 | `src/Collector.Core` | The data model and the change-log logic (`SnapshotDiff`). Compares two snapshots and reports: added, removed, went offline, back online, possible replacement (a guess). |
-| `src/Dashboard` | A small web server (.NET) that serves the dashboard page and an API. Runs as a Windows service when installed, or as a normal app while developing. |
+| `src/Dashboard` | A small web server (.NET) that serves the dashboard and an API. Runs as a Windows service when installed, or as a normal app while developing. |
+| `src/Dashboard/wwwroot` | The dashboard screens (plain HTML/JS, no build step): overview, servers → recording server → camera drill-down, camera search, camera detail with history, and the change log with filters and CSV export. |
 | `fixtures` | Two sample snapshots (6 and 7 Oct 2026) with made-up names. Not real customer data. |
 | `tests` | Tests for the change-log rules. |
 
@@ -42,7 +43,6 @@ To try your own snapshots, put `snapshot-YYYY-MM-DD.json` files (same shape as t
 
 1. Real Milestone collector (waiting on: which Milestone API, and one real snapshot from a test environment).
 2. Local database for history (embedded database, choice pending CTO confirmation).
-3. Full dashboard screens (servers drill-down, camera detail, filters) based on the Base44 prototype.
-4. Windows installer, local log file and "export diagnostics" bundle.
+3. Windows installer, local log file and "export diagnostics" bundle.
 
 Deliberately **not** in the first version: alerts, CPU/RAM/disk monitoring, comments, anything that changes Milestone configuration, any internet connection.
