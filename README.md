@@ -24,6 +24,8 @@ Status: **early starter code.** It runs on sample data ("fake Milestone"). There
    ```
 3. Open http://localhost:5080
 
+By default it only listens on your own machine (localhost). On a customer server, where operators open it from other PCs on the internal network, start it with `--Urls http://0.0.0.0:5080` (the installer will set this).
+
 To try your own snapshots, put `snapshot-YYYY-MM-DD.json` files (same shape as the ones in `fixtures`) in a folder and run with `--SnapshotFolder /path/to/folder`.
 
 ## API
